@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
     {
         val intent=Intent(Intent.ACTION_SEND)
         intent.type="text/plain"
-        intent.putExtra(Intent.EXTRA_TEXT,"Hey checkout this meme : $currentimageurl")
+        intent.putExtra(Intent.EXTRA_TEXT,"Hey checkout this meme : $currentUrl")
         val chooser=Intent.createChooser(intent,"Share this meme suing ...")
         startActivity(chooser)
     }
