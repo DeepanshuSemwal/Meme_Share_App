@@ -20,13 +20,18 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import java.util.Queue
+import java.util.LinkedList
 
 class MainActivity : AppCompatActivity() {
-    var currentimageurl:String?=null
+    val memeUrls: Queue<String> = LinkedList<String>()
+    val preloadCount: Int = 10
+    val currentUrl: String = ""
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        loadmeme()
+        loadMeme()
         val btn_next=findViewById<Button>(R.id.next)
         btn_next.setOnClickListener {
             next()
@@ -36,22 +41,32 @@ class MainActivity : AppCompatActivity() {
             share()
         }
     }
-    private fun loadmeme()
+    
+    private fun loadMeme()
     {
         // Instantiate the RequestQueue
-
-        val progressbar:ProgressBar=findViewById(R.id.progress_bar)
-        progressbar.visibility=View.VISIBLE
-        val imageview:ImageView=findViewById(R.id.imageView)
+        if (memeUrls.size < 1){
+            val progressbar:ProgressBar=findViewById(R.id.progress_bar)
+            progressbar.visibility=View.VISIBLE
+        }
+        
         val queue = Volley.newRequestQueue(this)
         val url = "https://meme-api.herokuapp.com/gimme"
-
         val jsonObjectRequest = JsonObjectRequest(Request.Method.GET, url, null,
             { response ->
 
-                currentimageurl=response.getString("url")
-                Glide.with(this).load(currentimageurl).into(imageview)
+                memeUrls.add(response.getString("url"))
                 progressbar.visibility=View.GONE
+                
+                if (memeUrls.size > 0 && currentUrl != memeUrls.peek()){
+                    val imageview:ImageView=findViewById(R.id.imageView)
+                    currentUrl = memeUrls.peek()
+                    Glide.with(this).load(currentUrl).into(imageview)
+                }
+                
+                if (memeUrls.size < preloadCount){
+                    loadMeme()
+                }
 
             },
 
@@ -60,8 +75,8 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this,"Something went wrong",Toast.LENGTH_LONG).show()
             })
         queue.add(jsonObjectRequest)
-
     }
+    
     private fun share()
     {
         val intent=Intent(Intent.ACTION_SEND)
@@ -73,6 +88,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun next()
     {
-        loadmeme()
+        memeUrls.poll()
+        loadMeme()
     }
 }
