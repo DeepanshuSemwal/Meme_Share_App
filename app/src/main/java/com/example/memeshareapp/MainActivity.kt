@@ -42,6 +42,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private fun setMeme()
+    {
+        if (memeUrls.size > 0 && currentUrl != memeUrls.peek()){
+            val imageview:ImageView=findViewById(R.id.imageView)
+            currentUrl = memeUrls.peek()
+            Glide.with(this).load(currentUrl).into(imageview)
+        }
+    }
+    
     private fun loadMeme()
     {
         // Instantiate the RequestQueue
@@ -58,11 +67,7 @@ class MainActivity : AppCompatActivity() {
                 memeUrls.add(response.getString("url"))
                 progressbar.visibility=View.GONE
                 
-                if (memeUrls.size > 0 && currentUrl != memeUrls.peek()){
-                    val imageview:ImageView=findViewById(R.id.imageView)
-                    currentUrl = memeUrls.peek()
-                    Glide.with(this).load(currentUrl).into(imageview)
-                }
+                setMeme()
                 
                 if (memeUrls.size < preloadCount){
                     loadMeme()
@@ -76,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             })
         queue.add(jsonObjectRequest)
     }
-    
+        
     private fun share()
     {
         val intent=Intent(Intent.ACTION_SEND)
@@ -89,6 +94,7 @@ class MainActivity : AppCompatActivity() {
     private fun next()
     {
         memeUrls.poll()
+        setMeme()
         loadMeme()
     }
 }
