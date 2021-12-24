@@ -53,12 +53,12 @@ class MainActivity : AppCompatActivity() {
     
     private fun loadMeme()
     {
-        // Instantiate the RequestQueue
+        val progressbar:ProgressBar=findViewById(R.id.progress_bar)
         if (memeUrls.size < 1){
-            val progressbar:ProgressBar=findViewById(R.id.progress_bar)
             progressbar.visibility=View.VISIBLE
         }
         
+        // Instantiate the RequestQueue
         val queue = Volley.newRequestQueue(this)
         val url = "https://meme-api.herokuapp.com/gimme"
         val jsonObjectRequest = JsonObjectRequest(Request.Method.GET, url, null,
