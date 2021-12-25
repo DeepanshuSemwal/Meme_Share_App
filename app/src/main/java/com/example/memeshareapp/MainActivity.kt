@@ -1,43 +1,35 @@
 package com.example.memeshareapp
 
 import android.content.Intent
-import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.Toast
 import com.android.volley.Request
-import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
+import com.google.android.material.snackbar.Snackbar
 import java.util.Queue
 import java.util.LinkedList
 
 class MainActivity : AppCompatActivity() {
-    val memeUrls: Queue<String> = LinkedList<String>()
-    val preloadCount: Int = 10
-    val currentUrl: String = ""
-    
+    private val memeUrls: Queue<String> = LinkedList<String>()
+    private val preloadCount: Int = 10
+    private var currentUrl: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         loadMeme()
-        val btn_next=findViewById<Button>(R.id.next)
-        btn_next.setOnClickListener {
+        val btnNext=findViewById<Button>(R.id.next)
+        btnNext.setOnClickListener {
             next()
         }
-        val btn_share:Button=findViewById(R.id.buttonshare)
-        btn_share.setOnClickListener {
+        val btnShare:Button=findViewById(R.id.buttonshare)
+        btnShare.setOnClickListener {
             share()
         }
     }
@@ -45,7 +37,7 @@ class MainActivity : AppCompatActivity() {
     private fun setMeme()
     {
         if (memeUrls.size > 0 && currentUrl != memeUrls.peek()){
-            val imageview:ImageView=findViewById(R.id.imageView)
+            val imageview:ImageView = findViewById(R.id.imageView)
             currentUrl = memeUrls.peek()
             Glide.with(this).load(currentUrl).into(imageview)
         }
@@ -64,20 +56,28 @@ class MainActivity : AppCompatActivity() {
         val jsonObjectRequest = JsonObjectRequest(Request.Method.GET, url, null,
             { response ->
 
-                memeUrls.add(response.getString("url"))
-                progressbar.visibility=View.GONE
+                val newMemeUrl: String = response.getString("url")
+
+                if (!memeUrls.contains(newMemeUrl))
+                {
+                    memeUrls.add(newMemeUrl)
+                    progressbar.visibility=View.GONE
+                }
                 
                 setMeme()
-                
+
                 if (memeUrls.size < preloadCount){
                     loadMeme()
                 }
-
             },
 
-            { error ->
-                // TODO: Handle error
-                Toast.makeText(this,"Something went wrong",Toast.LENGTH_LONG).show()
+            { _ ->
+                val snackBar: Snackbar = Snackbar.make(this.window.decorView.rootView, "Unable to fetch meme", Snackbar.LENGTH_INDEFINITE);
+                snackBar.setAction("Retry", View.OnClickListener {
+                    loadMeme()
+                })
+                snackBar.show()
+                progressbar.visibility=View.GONE
             })
         queue.add(jsonObjectRequest)
     }
@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
     {
         val intent=Intent(Intent.ACTION_SEND)
         intent.type="text/plain"
-        intent.putExtra(Intent.EXTRA_TEXT,"Hey checkout this meme : $currentUrl")
+        intent.putExtra(Intent.EXTRA_TEXT, currentUrl)
         val chooser=Intent.createChooser(intent,"Share this meme using ...")
         startActivity(chooser)
     }
